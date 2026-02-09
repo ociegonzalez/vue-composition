@@ -56,7 +56,7 @@ export default defineComponent({
 
     const { values, defineField, errors, handleSubmit, resetForm, meta } = useForm({
       validationSchema: ValidationShcema,
-      initialValues: product.value,
+      // initialValues: product.value,
     })
     const [title, titleAttrs] = defineField('title')
     const [slug, slugAttrs] = defineField('slug')

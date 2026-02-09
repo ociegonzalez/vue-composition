@@ -15,26 +15,6 @@ export const createUpdateProductAction = async (product: Partial<IProduct>) => {
 
   return await createProduct(product)
 }
-
-const cleanProductForCreateUpdate = (product: Partial<Product>) => {
-  const images = (product.images || [])
-
-    .filter((image) => typeof image === 'string')
-
-    .map((image) => {
-      if (image.startsWith('http')) {
-        const imageName = image.split('/').pop()
-
-        return imageName ? image : ''
-      }
-
-      return image
-    })
-
-  const { id, user, ...restProduct } = product
-
-  return { ...restProduct, images }
-}
 const cleanProductForCreateUpdateProductAction = (product: Partial<IProduct>) => {
   const images: string[] =
     product.images?.map((image) => {
@@ -74,29 +54,26 @@ const createProduct = async (product: Partial<IProduct>) => {
 }
 
 const uploadImages = async (images: (string | File)[]) => {
-  const filesUpload = images.filter((image) => image instanceof File) as File[]
-  const imageUrls = images.filter((image) => typeof image === 'string') as string[]
+  const filesToUpload = images.filter((image) => image instanceof File) as File[]
+  const currentImages = images.filter((image) => typeof image === 'string') as string[]
 
-  const uploadPromises = filesUpload.map(async (file) => {
-    const imageFile = images[0] as File
-
+  const uploadPromises = filesToUpload.map(async (file) => {
     try {
       const formData = new FormData()
-      formData.append('file', imageFile)
+      formData.append('file', file)
 
       const { data } = await tesloApi.post<{ secureUrl: string }>('/files/product', formData)
 
       return data.secureUrl
-    } catch (e) {
-      console.log(e)
-      throw new Error('No se pudo subir la imagen')
+    } catch (error) {
+      console.log(error)
+      throw new Error('Error uploading image')
     }
   })
 
   const uploadedImages = await Promise.all(uploadPromises)
 
-  return [...imageUrls, ...uploadedImages]
-
+  return [...currentImages, ...uploadedImages]
 }
 
 export default createUpdateProductAction
